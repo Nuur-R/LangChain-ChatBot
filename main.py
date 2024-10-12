@@ -8,31 +8,45 @@ load_dotenv()
 
 def main():
     # Set up UI
-    st.title("LangChain Chatbot with Groq and Streamlit")
-    st.write("This is a chatbot powered by LangChain and Groq.")
+    st.set_page_config(page_title="LangChain Chatbot", page_icon="🤖")
+
+    st.title("🤖 LangChain Chatbot with Groq and Streamlit")
+    st.write("Ask me anything! I'm powered by LangChain and Groq's LLM.")
 
     # Initialize chatbot
     chatbot = create_chatbot()
 
-    # Conversation history
+    # Initialize chat history
     if "chat_history" not in st.session_state:
         st.session_state["chat_history"] = []
 
-    # User input
-    user_input = st.text_input("Ask a question:", "")
+    # Display chat history using st.chat_message
+    for message in st.session_state["chat_history"]:
+        with st.chat_message(message["role"]):  # role can be "user" or "assistant"
+            st.markdown(message["content"])
 
-    if st.button("Send"):
-        if user_input:
-            # Get response from chatbot
+    # Chat input area
+    user_input = st.chat_input("Ask a question...")
+
+    if user_input:
+        # Display user message instantly
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        # Store user message in session state
+        st.session_state["chat_history"].append({"role": "user", "content": user_input})
+
+        # Status indicator: Chatbot is "thinking"
+        with st.status("Thinking..."):
+            # Get chatbot response
             response = chatbot(user_input)
-            # Append response to chat history
-            st.session_state["chat_history"].append((user_input, response))
 
-    # Display chat history
-    if st.session_state["chat_history"]:
-        for user_input, response in st.session_state["chat_history"]:
-            st.write(f"**You**: {user_input}")
-            st.write(f"**Chatbot**: {response}")
+        # Display chatbot response
+        with st.chat_message("assistant"):
+            st.markdown(response)
+
+        # Store assistant response in session state
+        st.session_state["chat_history"].append({"role": "assistant", "content": response})
 
 if __name__ == "__main__":
     main()
